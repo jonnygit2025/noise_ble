@@ -42,13 +42,24 @@ Effect effect = Effect::None;
 uint32_t nextTransition = 0;
 uint8_t flashes = 0;
 bool ledIsOn = false;
+bool soundIsOn = false;
 
 void setLed(bool on) {
   ledIsOn = on;
   digitalWrite(LED_PIN, on ? HIGH : LOW);
 }
 
-void stopSound() { noTone(BUZZER_PIN); }
+void startSound(uint32_t frequency) {
+  tone(BUZZER_PIN, frequency);
+  soundIsOn = true;
+}
+
+void stopSound() {
+  if (soundIsOn) {
+    noTone(BUZZER_PIN);
+    soundIsOn = false;
+  }
+}
 
 void cancelEffect() {
   effect = Effect::None;
@@ -57,7 +68,7 @@ void cancelEffect() {
 
 void startHonk(uint32_t now) {
   cancelEffect();
-  tone(BUZZER_PIN, 440);
+  startSound(440);
   effect = Effect::HonkLow;
   nextTransition = now + 120;
 }
@@ -66,7 +77,7 @@ void startStrobe(uint32_t now) {
   cancelEffect();
   flashes = 0;
   setLed(true);
-  tone(BUZZER_PIN, 1200);
+  startSound(1200);
   effect = Effect::StrobeOn;
   nextTransition = now + 40;
 }
@@ -102,7 +113,7 @@ void updateEffect(uint32_t now) {
   if (effect == Effect::None || (int32_t)(now - nextTransition) < 0) return;
   switch (effect) {
     case Effect::HonkLow:
-      tone(BUZZER_PIN, 880);
+      startSound(880);
       effect = Effect::HonkHigh;
       nextTransition = now + 200;
       break;
@@ -122,7 +133,7 @@ void updateEffect(uint32_t now) {
         effect = Effect::None;
       } else {
         setLed(true);
-        tone(BUZZER_PIN, 1200);
+        startSound(1200);
         effect = Effect::StrobeOn;
         nextTransition = now + 40;
       }
