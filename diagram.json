@@ -1,0 +1,74 @@
+{
+  "version": 1,
+  "author": "noise_ble",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-esp32-c3-devkitm-1",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -70,
+      "left": 190,
+      "attrs": {
+        "color": "red"
+      }
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": -30,
+      "left": 140,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "bz1",
+      "top": 100,
+      "left": 185,
+      "attrs": {
+        "volume": "0.5"
+      }
+    }
+  ],
+  "connections": [
+    [
+      "esp:4",
+      "r1:1",
+      "red",
+      []
+    ],
+    [
+      "r1:2",
+      "led1:A",
+      "red",
+      []
+    ],
+    [
+      "esp:GND.1",
+      "led1:C",
+      "black",
+      []
+    ],
+    [
+      "esp:5",
+      "bz1:2",
+      "orange",
+      []
+    ],
+    [
+      "esp:GND.2",
+      "bz1:1",
+      "black",
+      []
+    ]
+  ],
+  "dependencies": {}
+}

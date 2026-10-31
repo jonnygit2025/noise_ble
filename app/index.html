@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#140c0d">
+<title>Naso Clown</title>
+<style>
+  :root {
+    --bg: #140c0d; --panel: #22161a; --line: #3a262c; --fg: #f4ecec; --muted: #b59ea3;
+    --red: #e23a3a; --red-dark: #8f1d22; --ok: #4cc27a; --warn: #f0a91c;
+  }
+  * { box-sizing: border-box; -webkit-tap-highlight-color: transparent; }
+  body {
+    margin: 0; background: var(--bg); color: var(--fg);
+    font: 16px/1.4 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+    padding: max(12px, env(safe-area-inset-top)) max(14px, env(safe-area-inset-right))
+             max(20px, env(safe-area-inset-bottom)) max(14px, env(safe-area-inset-left));
+    user-select: none;
+  }
+  header { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 14px; }
+  h1 { font-size: 1.25rem; margin: 0; letter-spacing: .02em; }
+  .status { font-size: .85rem; color: var(--muted); display: flex; align-items: center; gap: 6px; }
+  .dot { width: 10px; height: 10px; border-radius: 50%; background: var(--muted); }
+  .dot.on { background: var(--ok); box-shadow: 0 0 8px var(--ok); }
+  .dot.busy { background: var(--warn); }
+  #connect {
+    width: 100%; padding: 16px; font-size: 1.1rem; font-weight: 700; border: 0; border-radius: 14px;
+    background: var(--red); color: #fff; margin-bottom: 16px;
+  }
+  #connect.connected { background: var(--panel); color: var(--muted); border: 1px solid var(--line); }
+  #connect { margin-bottom: 8px; }
+  button.secondary {
+    width: 100%; padding: 10px; font-size: .9rem; border-radius: 12px; margin-bottom: 16px;
+    background: transparent; color: var(--muted); border: 1px solid var(--line);
+  }
+  h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin: 18px 2px 8px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
+  .grid.big { grid-template-columns: repeat(2, 1fr); }
+  button.cmd {
+    min-height: 64px; padding: 10px 8px; border-radius: 14px; border: 1px solid var(--line);
+    background: var(--panel); color: var(--fg); font-size: 1rem; font-weight: 600;
+    display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
+    touch-action: manipulation; transition: transform .05s, background .1s;
+  }
+  .grid.big button.cmd { min-height: 96px; font-size: 1.15rem; }
+  button.cmd small { font-size: .72rem; font-weight: 400; color: var(--muted); }
+  button.cmd.hot { background: var(--red-dark); border-color: var(--red); }
+  button.cmd.stop { background: #2b2b2b; border-color: #555; }
+  button.cmd:active, button.cmd.flash { transform: scale(.96); background: var(--red); }
+  button:disabled { opacity: .4; }
+  #log { margin-top: 18px; font: .8rem ui-monospace, monospace; color: var(--muted); min-height: 1.2em; }
+  .note { color: var(--muted); font-size: .85rem; margin-top: 14px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🤡 Naso Clown</h1>
+  <div class="status"><span class="dot" id="dot"></span><span id="state">non collegato</span></div>
+</header>
+
+<button id="connect">Collega al naso</button>
+<button id="connect-all" class="secondary">Non lo trova? Mostra tutti i dispositivi</button>
+
+<h2>Rapidi</h2>
+<div class="grid big">
+  <button class="cmd hot" data-c="H">Bip bip<small>H · 48</small></button>
+  <button class="cmd hot" data-c="1">Naso + bip<small>1 · 31</small></button>
+  <button class="cmd hot" data-c="F">Paziente muore<small>F · 46</small></button>
+  <button class="cmd stop" data-c="0">STOP<small>0 · 30</small></button>
+</div>
+
+<h2>Luce</h2>
+<div class="grid">
+  <button class="cmd" data-c="L">Naso on/off<small>L · 4C</small></button>
+  <button class="cmd" data-c="S">Strobo<small>S · 53</small></button>
+</div>
+
+<h2>Musiche</h2>
+<div class="grid">
+  <button class="cmd" data-c="M">Toccata<small>M · 4D</small></button>
+  <button class="cmd" data-c="W">Notte<small>W · 57</small></button>
+  <button class="cmd" data-c="R">Rosso<small>R · 52</small></button>
+  <button class="cmd" data-c="Y">Nebbia<small>Y · 59</small></button>
+</div>
+
+<h2>Volume</h2>
+<div class="grid">
+  <button class="cmd" data-c="A">Alto<small>A · 41</small></button>
+  <button class="cmd" data-c="N">Medio<small>N · 4E</small></button>
+  <button class="cmd" data-c="Q">Basso<small>Q · 51</small></button>
+</div>
+
+<h2>Tipo di suono</h2>
+<div class="grid">
+  <button class="cmd" data-c="K">Iniziale<small>K · 4B</small></button>
+  <button class="cmd" data-c="I">2250 Hz<small>I · 49</small></button>
+  <button class="cmd" data-c="J">4000 Hz<small>J · 4A</small></button>
+</div>
+
+<h2>Buzzer e prova</h2>
+<div class="grid">
+  <button class="cmd" data-c="P">Due pin<small>P · 50</small></button>
+  <button class="cmd" data-c="G">Un pin<small>G · 47</small></button>
+  <button class="cmd" data-c="T">Scala<small>T · 54</small></button>
+</div>
+
+<div id="log"></div>
+<div id="diag" class="note"></div>
+<p class="note">Funziona con Chrome su Android. La prima volta tocca "Collega al naso" e scegli <b>NasoClown-Halloween</b>. Ogni tocco manda subito il comando: puoi toccare lo stesso bottone più volte di fila.</p>
+
+<script>
+const SERVICE = "4fafc201-1fb5-459e-8fcc-c5c9c331914b";
+const CHARACTERISTIC = "beb5483e-36e1-4688-b7f5-ea07361b26a8";
+const NAME = "NasoClown-Halloween";
+
+const $ = (id) => document.getElementById(id);
+const buttons = [...document.querySelectorAll("button.cmd")];
+let device = null, characteristic = null;
+let queue = Promise.resolve();   // BLE accepts one write at a time: taps are queued in order
+
+function setState(text, cls) {
+  $("state").textContent = text;
+  $("dot").className = "dot" + (cls ? " " + cls : "");
+  const on = cls === "on";
+  buttons.forEach((b) => (b.disabled = !on));
+  $("connect").textContent = on ? "Collegato · tocca per scollegare" : "Collega al naso";
+  $("connect").classList.toggle("connected", on);
+}
+
+let searching = false;
+async function connect(showAll = false) {
+  if (!navigator.bluetooth) {
+    $("log").textContent = "Questo browser non ha il Bluetooth web: apri il link direttamente in Chrome.";
+    return;
+  }
+  if (searching) return;
+  searching = true;
+  // If the device chooser never opens, unlock the buttons instead of staying on "ricerca…".
+  const stuck = setTimeout(() => {
+    searching = false;
+    setState("non collegato");
+    $("log").textContent = "La finestra di scelta non si è aperta: apri il link direttamente in Chrome, con Bluetooth e posizione attivi.";
+  }, 15000);
+  try {
+    setState("ricerca…", "busy");
+    if (!device) {
+      // The full name may not fit in the advertising packet next to the 128-bit UUID:
+      // match the service UUID or the start of the name, or (fallback) list every device.
+      const options = showAll
+        ? { acceptAllDevices: true, optionalServices: [SERVICE] }
+        : { filters: [{ services: [SERVICE] }, { namePrefix: "NasoClown" }], optionalServices: [SERVICE] };
+      device = await navigator.bluetooth.requestDevice(options);
+      device.addEventListener("gattserverdisconnected", () => { characteristic = null; setState("scollegato"); });
+    }
+    const server = await device.gatt.connect();
+    const service = await server.getPrimaryService(SERVICE);
+    characteristic = await service.getCharacteristic(CHARACTERISTIC);
+    setState("collegato", "on");
+    $("log").textContent = "";
+  } catch (err) {
+    device = null;  // let the next attempt open the device list again
+    setState("non collegato");
+    $("log").textContent = "Errore: " + err.name + " – " + err.message;
+  } finally {
+    clearTimeout(stuck);
+    searching = false;
+  }
+}
+
+// Diagnostic line: which browser this is and whether it can use Bluetooth.
+async function diagnose() {
+  const ua = navigator.userAgent;
+  const inApp = /; wv\)|FBAN|FBAV|Instagram|Line\/|WhatsApp|Telegram/i.test(ua);
+  let bt = navigator.bluetooth ? "sì" : "NO";
+  if (navigator.bluetooth && navigator.bluetooth.getAvailability) {
+    try { bt += (await navigator.bluetooth.getAvailability()) ? ", adattatore pronto" : ", adattatore spento o non disponibile"; } catch (e) {}
+  }
+  $("diag").textContent = "Bluetooth web: " + bt + (inApp ? " · ATTENZIONE: browser interno di un'app, apri in Chrome" : "") +
+    " · " + (ua.match(/(Chrome|SamsungBrowser|Firefox|Version)\/[\d.]+/) || ["browser sconosciuto"])[0];
+}
+
+function send(letter, btn) {
+  if (!characteristic) return;
+  if (navigator.vibrate) navigator.vibrate(15);
+  btn.classList.add("flash");
+  setTimeout(() => btn.classList.remove("flash"), 120);
+  const data = new Uint8Array([letter.charCodeAt(0)]);
+  queue = queue
+    .then(() => characteristic.writeValue(data))
+    .then(() => { $("log").textContent = "inviato " + letter; })
+    .catch((err) => { $("log").textContent = "Errore: " + err.message; });
+}
+
+$("connect").addEventListener("click", () => {
+  if (device && device.gatt.connected) device.gatt.disconnect();
+  else connect();
+});
+$("connect-all").addEventListener("click", () => { device = null; connect(true); });
+// pointerdown fires on touch, without the click delay: repeated taps are sent at once
+buttons.forEach((b) => b.addEventListener("pointerdown", (e) => { e.preventDefault(); send(b.dataset.c, b); }));
+setState("non collegato");
+diagnose();
+</script>
+</body>
+</html>

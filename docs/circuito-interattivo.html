@@ -1,0 +1,433 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Circuito Naso Clown</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@600;800&family=Source+Sans+3:wght@400;600&family=JetBrains+Mono:wght@400;600&display=swap">
+<style>
+/* Layout: colonna di lettura stretta, con il diagramma della breadboard a tutta larghezza come centro della pagina */
+:root {
+  --bg: #f3f5f2; --surface: #ffffff; --fg: #1d2420; --muted: #5d6a62; --line: #d5dcd6;
+  --board-plastic: #fbfaf6; --hole: #b9c0ba; --pcb: #1f3f6e; --pcb-fg: #e8eefb;
+  --net-sig: #d23b2a; --net-mid: #d18a00; --net-gnd: #2e3a44; --ok: #2f8a4c; --accent: #1f6f5a;
+  --res: #d9b98a; --net-bz: #7b4fd6; --net-bzs: #1b9aa6;
+  --f-display: "Archivo", "Arial Narrow", sans-serif;
+  --f-body: "Source Sans 3", "Segoe UI", sans-serif;
+  --f-mono: "JetBrains Mono", Consolas, monospace;
+}
+@media (prefers-color-scheme: dark) { :root:not([data-theme="light"]) {
+  --bg: #141917; --surface: #1c2320; --fg: #e6ece8; --muted: #9aa8a0; --line: #2f3a35;
+  --board-plastic: #e9e7df; --hole: #a7aea8; --pcb: #2a5291; --pcb-fg: #eef3fd;
+  --net-sig: #ff6a55; --net-mid: #f0a91c; --net-gnd: #4b5b68; --ok: #5cc27d; --accent: #5cc2a4; --res: #d9b98a; --net-bz: #a687f5; --net-bzs: #4cc6d0;
+  color-scheme: dark } }
+:root[data-theme="dark"] {
+  --bg: #141917; --surface: #1c2320; --fg: #e6ece8; --muted: #9aa8a0; --line: #2f3a35;
+  --board-plastic: #e9e7df; --hole: #a7aea8; --pcb: #2a5291; --pcb-fg: #eef3fd;
+  --net-sig: #ff6a55; --net-mid: #f0a91c; --net-gnd: #4b5b68; --ok: #5cc27d; --accent: #5cc2a4; --res: #d9b98a; --net-bz: #a687f5; --net-bzs: #4cc6d0;
+  color-scheme: dark }
+body { background: var(--bg); color: var(--fg); font-family: var(--f-body); font-size: 17px; line-height: 1.55; }
+.wrap { max-width: 900px; margin: 0 auto; padding-block: 32px 64px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px)); padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; flex-direction: column; gap: 36px; }
+h1, h2 { font-family: var(--f-display); text-wrap: balance; margin: 0; line-height: 1.15; }
+h1 { font-size: 2.1rem; font-weight: 800; }
+h2 { font-size: 1.35rem; font-weight: 600; }
+p { margin: 0; max-width: 68ch; }
+.lead { color: var(--muted); font-size: 1.08rem; }
+section { display: flex; flex-direction: column; gap: 14px; }
+code, .mono { font-family: var(--f-mono); font-size: 0.9em; }
+.idea { background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 18px 20px; display: flex; flex-direction: column; gap: 10px; }
+.idea strong { color: var(--accent); }
+.chain { font-family: var(--f-mono); font-size: 0.92rem; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip { padding: 2px 8px; border-radius: 999px; color: #fff; font-weight: 600; white-space: nowrap; }
+.c-sig { background: var(--net-sig); } .c-mid { background: var(--net-mid); } .c-gnd { background: var(--net-gnd); }
+.controls { display: flex; flex-wrap: wrap; gap: 14px 22px; align-items: center; }
+.controls label { font-weight: 600; }
+input[type=range] { width: min(320px, 100%); accent-color: var(--accent); }
+button { font: 600 0.95rem var(--f-body); padding: 7px 14px; border-radius: 6px; border: 1px solid var(--line); background: var(--surface); color: var(--fg); cursor: pointer; }
+button[aria-pressed="true"] { background: var(--accent); color: var(--bg); border-color: var(--accent); }
+button:focus-visible, input:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+.diagram { overflow-x: auto; background: var(--surface); border: 1px solid var(--line); border-radius: 10px; padding: 10px; }
+.diagram svg { display: block; min-width: 720px; width: 100%; height: auto; }
+.legend { display: flex; flex-wrap: wrap; gap: 8px 18px; font-size: 0.92rem; color: var(--muted); }
+.legend span::before { content: ""; display: inline-block; width: 12px; height: 12px; border-radius: 3px; margin-right: 6px; vertical-align: -1px; background: var(--c); }
+ol.steps { margin: 0; padding-left: 1.4em; display: flex; flex-direction: column; gap: 8px; }
+ol.steps b { font-family: var(--f-mono); }
+ul.checks { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; gap: 6px; }
+ul.checks li::before { content: "✓"; color: var(--ok); font-weight: 700; margin-right: 8px; }
+.note { color: var(--muted); font-size: 0.95rem; }
+.rules { display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 14px; }
+.rule { border-top: 3px solid var(--accent); padding-top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.rule h3 { margin: 0; font-family: var(--f-display); font-size: 1.02rem; }
+.rule.bad { border-top-color: var(--net-sig); }
+.tablewrap { overflow-x: auto; }
+table.cmds { border-collapse: collapse; width: 100%; font-size: 0.95rem; }
+table.cmds td, table.cmds th { text-align: left; padding: 6px 10px; border-bottom: 1px solid var(--line); vertical-align: top; }
+table.cmds td:nth-child(-n+2) { font-family: var(--f-mono); font-weight: 600; white-space: nowrap; }
+table.cmds tbody th { color: var(--accent); font-family: var(--f-display); font-weight: 600; padding-top: 14px; }
+</style>
+
+<div class="wrap">
+  <header style="display:flex;flex-direction:column;gap:10px">
+    <h1>La regola per collegare il LED, ovunque metti la scheda</h1>
+    <p class="lead">Non serve ricordare dei fori precisi. Basta capire quali fori sono collegati fra loro e costruire un percorso chiuso da GPIO4 a G. Sposta la scheda con il cursore: il percorso cambia posizione, ma la regola è sempre la stessa.</p>
+  </header>
+
+  <section>
+    <h2>L'idea in una frase</h2>
+    <div class="idea">
+      <p>La breadboard è fatta di <strong>strisce</strong>: i 5 fori a–e di una colonna sono un unico pezzo di metallo, e lo stesso vale per i 5 fori f–j. Ogni striscia è un <strong>nodo</strong>, cioè un punto elettrico. Il circuito deve passare da un nodo all'altro <strong>solo attraverso i componenti</strong>, in questo ordine:</p>
+      <div class="chain">
+        <span class="chip c-sig">nodo di GPIO4</span>→ resistenza →
+        <span class="chip c-mid">nodo intermedio</span>→ LED (+ → −) →
+        <span class="chip c-gnd">nodo di G</span>
+      </div>
+      <p>Servono quindi <strong>3 nodi</strong>, ognuno con un colore nel disegno. Ogni componente ha una gamba in un nodo e l'altra nel nodo successivo. Se due gambe dello stesso componente finiscono nella stessa striscia, quel componente è cortocircuitato e non fa niente.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Prova: sposta la scheda</h2>
+    <div class="controls">
+      <label for="pos">Colonna più bassa occupata dalla scheda: <span id="posval" class="mono">19</span></label>
+      <input id="pos" type="range" min="1" max="23" value="1">
+      <button id="agreed" type="button">Il tuo montaggio attuale</button>
+    </div>
+    <div class="controls">
+      <span style="font-weight:600">Breadboard:</span>
+      <button id="rot-no" type="button" aria-pressed="true">colonna 1 a sinistra</button>
+      <button id="rot-yes" type="button" aria-pressed="false">colonna 30 a sinistra</button>
+    </div>
+    <div class="controls">
+      <span style="font-weight:600">Scheda, USB verso la:</span>
+      <button id="usb-high" type="button" aria-pressed="true">colonna 30</button>
+      <button id="usb-low" type="button" aria-pressed="false">colonna 1 (scheda girata)</button>
+    </div>
+    <div class="controls">
+      <span style="font-weight:600">Righe dei pin:</span>
+      <button id="pl-bf" type="button" aria-pressed="false">b e f (più in basso)</button>
+      <button id="pl-cg" type="button" aria-pressed="true">c e g</button>
+      <button id="pl-dh" type="button" aria-pressed="false">d e h (più in alto)</button>
+    </div>
+    <p class="note"><span id="viewnote"></span> Girando la scheda di 180° si scambiano due cose insieme: il lato della USB e le due file di pin. La fila 0…5V finisce dall'altra parte della fessura, e la pagina sposta i componenti sull'altro lato. Le due file di pin distano sempre 6 fori, compresa la fessura: per questo le sole posizioni possibili sono b–f, c–g e d–h.</p>
+    <div class="controls" id="sidectl">
+      <span style="font-weight:600">Componenti verso le:</span>
+      <button id="side-left" type="button" aria-pressed="true">colonne basse</button>
+      <button id="side-right" type="button" aria-pressed="false">colonne alte</button>
+      <span class="note" id="sidenote"></span>
+    </div>
+    <div class="diagram"><svg id="bb" viewBox="0 0 760 360" role="img" aria-label="Breadboard con scheda ESP32-C3 Super Mini, resistenza e LED"></svg></div>
+    <div class="legend">
+      <span style="--c:var(--net-sig)">nodo di GPIO4</span>
+      <span style="--c:var(--net-mid)">nodo intermedio</span>
+      <span style="--c:var(--net-gnd)">nodo di G (massa)</span>
+      <span style="--c:var(--net-bz)">nodo di GPIO5 → S</span>
+      <span style="--c:var(--net-bzs)">nodo − del buzzer → GPIO6</span>
+      <span style="--c:var(--hole)">fessura centrale: i due lati NON sono collegati</span>
+    </div>
+  </section>
+
+  <section>
+    <h2>I fori per questa posizione</h2>
+    <p class="note">Fai tutto con la USB scollegata.</p>
+    <ol class="steps" id="steps"></ol>
+    <h2 style="margin-top:10px">Perché questa disposizione è corretta</h2>
+    <ul class="checks" id="checks"></ul>
+  </section>
+
+  <section>
+    <h2>Il metodo, passo per passo</h2>
+    <div class="rules">
+      <div class="rule"><h3>1. Trova i due pin sulla scheda</h3><p>Leggi la serigrafia accanto ai pin. Annota la colonna di <b>4</b> (GPIO4) e quella di <b>G</b>. Non andare a memoria: se giri la scheda, i numeri cambiano.</p></div>
+      <div class="rule"><h3>2. Usa i fori liberi di quelle colonne</h3><p>La scheda occupa le righe c e g. Nella stessa colonna i fori a e b sono ancora collegati al pin. Un jumper in a porta il segnale dove vuoi tu.</p></div>
+      <div class="rule"><h3>3. Scegli 3 colonne libere</h3><p>Sul lato f–j, lontano dalla scheda e dal cavo USB. Saranno il nodo di GPIO4 (prolungato), il nodo intermedio e il nodo di G (prolungato).</p></div>
+      <div class="rule"><h3>4. Collega in fila</h3><p>Jumper da GPIO4 alla colonna 1. Resistenza fra colonna 1 e colonna 2. LED con la gamba lunga in colonna 2 e la corta in colonna 3. Jumper dalla colonna 3 a G.</p></div>
+      <div class="rule"><h3>5. Controlla i nodi</h3><p>Ogni componente deve avere le due gambe in due strisce diverse. Segui il percorso col dito: deve arrivare da GPIO4 a G passando per tutti i componenti, senza scorciatoie.</p></div>
+      <div class="rule"><h3>6. La polarità conta solo per il LED</h3><p>La gamba lunga (+) guarda verso GPIO4, quella corta (−, lato piatto) verso G. La resistenza e i jumper si possono girare come vuoi.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Comandi BLE e seriali</h2>
+    <p class="note">Da nRF Connect: dispositivo <b class="mono">NasoClown-Halloween</b>, caratteristica <span class="mono">beb5483e-…26a8</span>, scrittura in esadecimale. Conta solo il primo byte. Dal monitor seriale (COM5, 115200) scrivi la lettera e premi Invio.</p>
+    <div class="tablewrap"><table class="cmds">
+      <thead><tr><th>Hex</th><th>Lettera</th><th>Effetto</th></tr></thead>
+      <tbody>
+        <tr><th colspan="3">Luce e suono</th></tr>
+        <tr><td>4C</td><td>L</td><td>LED acceso / spento</td></tr>
+        <tr><td>48</td><td>H</td><td>Doppio bip "bip … bip" con il suono scelto (anche <b>42</b> = B)</td></tr>
+        <tr><td>31</td><td>1</td><td>LED acceso + doppio bip</td></tr>
+        <tr><td>53</td><td>S</td><td>Strobo: 6 lampeggi con suono, LED spento alla fine</td></tr>
+        <tr><td>4D</td><td>M</td><td>Musichetta horror (inizio della Toccata e Fuga di Bach, ~9 s): il naso si accende su ogni nota e si spegne nelle pause</td></tr>
+        <tr><td>30</td><td>0</td><td>Spegne tutto e interrompe gli effetti (anche quando cade la connessione BLE)</td></tr>
+        <tr><th colspan="3">Suono (resta attivo finché non ne scegli un altro)</th></tr>
+        <tr><td>4B</td><td>K</td><td>Iniziale: doppio bip 3750 / 4250 Hz, strobo a 4000 Hz <i>(all'accensione)</i></td></tr>
+        <tr><td>49</td><td>I</td><td>Tutto a 2250 Hz (4° bip della scala)</td></tr>
+        <tr><td>4A</td><td>J</td><td>Tutto a 4000 Hz (11° bip della scala)</td></tr>
+        <tr><th colspan="3">Potenza</th></tr>
+        <tr><td>41</td><td>A</td><td>Volume alto <i>(all'accensione)</i></td></tr>
+        <tr><td>4E</td><td>N</td><td>Volume medio</td></tr>
+        <tr><td>51</td><td>Q</td><td>Volume basso</td></tr>
+        <tr><td>50</td><td>P</td><td>Due pin: GPIO5 e GPIO6 in opposizione, il più forte <i>(all'accensione)</i></td></tr>
+        <tr><td>47</td><td>G</td><td>Un pin: GPIO6 fisso a 0 V, fa da G</td></tr>
+        <tr><th colspan="3">Prova</th></tr>
+        <tr><td>54</td><td>T</td><td>Scala da 1500 a 5000 Hz a passi di 250 Hz (15 toni)</td></tr>
+      </tbody>
+    </table></div>
+    <p class="note">I comandi di suono, potenza e modalità fanno un doppio bip di conferma. Le impostazioni si perdono al riavvio e tornano a K, A e P.</p>
+  </section>
+
+  <section>
+    <h2>Montaggio finale e prossimi passi</h2>
+    <p>Il costume è ispirato all'Allegro Chirurgo: una scatola sul busto piena di "organi"; quando qualcuno tocca un organo, o arriva un comando dall'app, il buzzer suona e il naso si illumina.</p>
+    <ul class="checks">
+      <li><b>Fatto (31/10/2026):</b> LED saldato al cavo bianco e montato sulla punta del naso rosso; buzzer anche lui su cavo, fuori dalla breadboard. Cavi e mezzi jumper saldati e isolati.</li>
+      <li><b>Fatto:</b> breadboard incollata dentro una scatoletta, con i cavi che escono dall'alto. Luce, suono e app provati e funzionanti.</li>
+      <li>Per i tocchi serve un ingresso per ogni organo. La ESP32-C3 non ha i sensori touch capacitivi delle altre ESP32: servono contatti metallici (pinzetta e bordo, come nel gioco originale) oppure moduli touch come il TTP223.</li>
+      <li>Pin già usati: 4 (LED), 5 e 6 (buzzer). Liberi per gli organi: 0, 1, 3, 7, 10, 20, 21. Da evitare 2, 8 e 9, che servono all'avvio.</li>
+    </ul>
+  </section>
+
+  <section>
+    <h2>Errori tipici</h2>
+    <div class="rules">
+      <div class="rule bad"><h3>Gambe nella stessa striscia</h3><p>Resistenza in f3 e h3: sono la stessa colonna dello stesso lato, quindi la corrente la scavalca.</p></div>
+      <div class="rule bad"><h3>Attraversare la fessura per sbaglio</h3><p>a5 e f5 hanno lo stesso numero, ma <b>non</b> sono collegati. La fessura centrale separa i due lati.</p></div>
+      <div class="rule bad"><h3>Confondere 5 con 5V</h3><p>Sulla Super Mini ci sono sia il pin <b>5</b> (GPIO5, per il buzzer) sia il pin <b>5V</b>. Per il LED usa solo <b>4</b> e <b>G</b>.</p></div>
+      <div class="rule bad"><h3>LED al contrario</h3><p>Il LED si comporta come una valvola: girato al contrario resta spento, senza rompersi. Se non si accende, prova a girarlo.</p></div>
+      <div class="rule bad"><h3>Niente resistenza</h3><p>Senza resistenza il LED assorbe troppa corrente dal pin. Con 220 Ω e 3,3 V passano circa 6 mA, un valore sicuro.</p></div>
+    </div>
+  </section>
+</div>
+
+<script>
+const ZERO_ROW = ["0","1","2","3","4","3.3","G","5V"];
+const OTHER_ROW = ["21","20","10","9","8","7","6","5"];
+const ROWS = "abcdefghij";
+const PLACEMENTS = { bf: ["b", "f"], cg: ["c", "g"], dh: ["d", "h"] };  // righe dei due file di pin (passo 0,6")
+const X0 = 40, P = 22;
+const st = { s: 1, usb: "low", side: "high", rot: false, place: "cg" };
+
+// coordinate a schermo: rot=false come nella foto (colonna 1 a sinistra, j in alto)
+const x = c => st.rot ? X0 + (30 - c) * P : X0 + (c - 1) * P;
+const y = r => { const k = ROWS.indexOf(r), i = st.rot ? k : 9 - k; return 60 + i * 22 + (i >= 5 ? 30 : 0); };
+const half = r => ROWS.indexOf(r) < 5 ? "bot" : "top";
+
+function canLow(s) { return s >= 7; }
+function canHigh(s) { return s <= 17; }
+function layout() {
+  const s = st.s;
+  let side = st.side;
+  if (side === "low" && !canLow(s)) side = "high";
+  if (side === "high" && !canHigh(s)) side = "low";
+  // due colonne vuote fra scheda e LED, per far passare i jumper
+  let p, q, r;
+  if (side === "low") { r = s - 3; q = s - 4; p = Math.max(1, s - 10); }
+  else { r = s + 10; q = s + 11; p = Math.min(30, s + 17); }
+  const [lowRow, highRow] = PLACEMENTS[st.place];
+  // ruotare la scheda di 180° scambia sia il lato della USB sia le due file di pin
+  const zeroRow = st.usb === "high" ? lowRow : highRow;
+  const otherRow = zeroRow === lowRow ? highRow : lowRow;
+  const X = st.usb === "high" ? s + 4 : s + 3, Y = st.usb === "high" ? s + 6 : s + 1;
+  const pinHalf = half(zeroRow);
+  const jStart = pinHalf === "bot" ? "a" : "j";          // foro libero più lontano dalla scheda
+  const compHalf = pinHalf === "bot" ? "top" : "bot";    // componenti sull'altro lato della fessura
+  const rows = compHalf === "top" ? { res: "f", led: "h", jmp: "j" } : { res: "e", led: "c", jmp: "a" };
+  // buzzer: GPIO5 è all'estremità USB della fila opposta, quindi sul lato dei componenti
+  const g5 = st.usb === "high" ? s + 7 : s;
+  const used = new Set();
+  for (let c = s; c <= s + 7; c++) used.add(c);
+  for (let c = Math.min(p, q, r); c <= Math.max(p, q, r); c++) used.add(c);
+  let bz = null, best = Infinity;
+  for (let a = 1; a <= 30; a++) for (const d of [1, -1]) {
+    // arrivo jumper, S, centrale, −: il − sta dalla parte del jumper, la S in fondo
+    const cols = [a, a + 5 * d, a + 4 * d, a + 3 * d];
+    // anche il cilindro sporge per ~6 colonne: lascia una colonna libera oltre la S
+    if ([...cols, a + 6 * d].some(c => c < 1 || c > 30 || used.has(c))) continue;
+    const score = Math.abs(a - g5);
+    if (score < best) { best = score; bz = { A: cols[0], S: cols[1], M: cols[2], N: cols[3] }; }
+  }
+  const brow = compHalf === "top" ? { jmp: "j", res: "i", pin: "h" } : { jmp: "a", res: "b", pin: "c" };
+  // GPIO6 è accanto a GPIO5 nella stessa fila: pilota il − del buzzer in opposizione
+  const g6 = st.usb === "high" ? s + 6 : s + 1;
+  return { s, X, Y, P: p, Q: q, R: r, side, zeroRow, otherRow, pinHalf, compHalf, jStart, rows, g5, g6, bz, brow };
+}
+
+const svgNS = "http://www.w3.org/2000/svg";
+function el(tag, attrs, text) {
+  const e = document.createElementNS(svgNS, tag);
+  for (const k in attrs) e.setAttribute(k, attrs[k]);
+  if (text != null) e.textContent = text;
+  return e;
+}
+const T = (a) => Object.assign({ "text-anchor": "middle", "font-family": "var(--f-mono)" }, a);
+function strip(g, col, h, color) {
+  const ys = h === "bot" ? [y("a"), y("e")] : [y("f"), y("j")];
+  g.appendChild(el("rect", { x: x(col) - 9, y: Math.min(...ys) - 9, width: 18, height: 4 * 22 + 18, rx: 6, fill: color, "fill-opacity": 0.22, stroke: color, "stroke-width": 1.5 }));
+}
+const outward = r => Math.sign(y(r) - 175) || 1;   // verso il bordo esterno della breadboard
+
+function render() {
+  const L = layout(), s = L.s;
+  document.getElementById("pos").value = s;
+  document.getElementById("posval").textContent = s;
+  const svg = document.getElementById("bb");
+  svg.innerHTML = "";
+  const g = el("g", {});
+  svg.appendChild(g);
+
+  g.appendChild(el("rect", { x: 10, y: 10, width: 740, height: 340, rx: 10, fill: "var(--board-plastic)", stroke: "var(--line)" }));
+  const gapY = 60 + 4 * 22 + 14;
+  g.appendChild(el("rect", { x: 20, y: gapY, width: 720, height: 22, fill: "var(--hole)", "fill-opacity": 0.35 }));
+
+  strip(g, L.X, L.pinHalf, "var(--net-sig)");
+  strip(g, L.P, L.compHalf, "var(--net-sig)");
+  strip(g, L.Q, L.compHalf, "var(--net-mid)");
+  strip(g, L.R, L.compHalf, "var(--net-gnd)");
+  strip(g, L.Y, L.pinHalf, "var(--net-gnd)");
+  if (L.bz) {
+    strip(g, L.g5, L.compHalf, "var(--net-bz)");
+    strip(g, L.bz.S, L.compHalf, "var(--net-bz)");
+    strip(g, L.g6, L.compHalf, "var(--net-bzs)");
+    strip(g, L.bz.N, L.compHalf, "var(--net-bzs)");
+  }
+
+  for (let c = 1; c <= 30; c++) {
+    g.appendChild(el("text", T({ x: x(c), y: 24, "font-size": 10, fill: "#6b746e" }), c));
+    g.appendChild(el("text", T({ x: x(c), y: 342, "font-size": 10, fill: "#6b746e" }), c));
+    for (const r of ROWS) g.appendChild(el("rect", { x: x(c) - 3.5, y: y(r) - 3.5, width: 7, height: 7, rx: 1.5, fill: "var(--hole)" }));
+  }
+  for (const r of ROWS) {
+    g.appendChild(el("text", T({ x: 24, y: y(r) + 4, "font-size": 11, fill: "#6b746e" }), r));
+    g.appendChild(el("text", T({ x: 736, y: y(r) + 4, "font-size": 11, fill: "#6b746e" }), r));
+  }
+
+  // scheda
+  const left = Math.min(x(s), x(s + 7)) - 13, right = Math.max(x(s), x(s + 7)) + 13;
+  const yA = y(L.zeroRow), yB = y(L.otherRow);
+  const top = Math.min(yA, yB) - 14, bottom = Math.max(yA, yB) + 14, midY = (top + bottom) / 2;
+  const usbCol = st.usb === "high" ? s + 7 : s;
+  const usbOnLeft = x(usbCol) < (left + right) / 2;
+  const bx = usbOnLeft ? left - 20 : left, bw = right - left + 20;
+  g.appendChild(el("rect", { x: bx, y: top, width: bw, height: bottom - top, rx: 6, fill: "var(--pcb)" }));
+  const ux = usbOnLeft ? bx - 4 : bx + bw - 22;
+  g.appendChild(el("rect", { x: ux, y: midY - 16, width: 26, height: 32, rx: 4, fill: "#b8bec4", stroke: "#7d858c" }));
+  g.appendChild(el("text", T({ x: ux + 13, y: midY + 4, "font-size": 8, fill: "#333" }), "USB"));
+  g.appendChild(el("text", T({ x: (left + right) / 2 + (usbOnLeft ? 10 : -10), y: midY + 4, "font-size": 12, fill: "var(--pcb-fg)", "font-family": "var(--f-display)", "font-weight": 600 }), "ESP32-C3 Super Mini"));
+  const inward = yy => (yy < midY ? 19 : -11);
+  for (let i = 0; i < 8; i++) {
+    const c = s + i, k = st.usb === "high" ? i : 7 - i;
+    const hi = c === L.X ? "var(--net-sig)" : c === L.Y ? "var(--net-gnd)" : "#d8b45a";
+    g.appendChild(el("circle", { cx: x(c), cy: yA, r: 5, fill: hi, stroke: "#fff", "stroke-width": hi === "#d8b45a" ? 0 : 2 }));
+    g.appendChild(el("circle", { cx: x(c), cy: yB, r: 5, fill: "#d8b45a" }));
+    g.appendChild(el("text", T({ x: x(c), y: yA + inward(yA), "font-size": 9, fill: "var(--pcb-fg)", "font-weight": hi === "#d8b45a" ? 400 : 700 }), ZERO_ROW[k]));
+    g.appendChild(el("text", T({ x: x(c), y: yB + inward(yB), "font-size": 9, fill: "var(--pcb-fg)" }), OTHER_ROW[k]));
+  }
+
+  // jumper: escono verso il bordo, girano accanto alla scheda, entrano nel foro dal bordo opposto
+  const compOnLeft = x(L.P) < left;
+  const jumper = (c1, r1, c2, r2, color, off, lane1, lane2) => {
+    const x1 = x(c1), y1 = y(r1), x2 = x(c2), y2 = y(r2);
+    const cx = compOnLeft ? left - off : right + off;
+    const ys = y1 + outward(r1) * lane1, ye = y2 + outward(r2) * lane2;
+    g.appendChild(el("path", { d: `M${x1} ${y1} V ${ys} H ${cx} V ${ye} H ${x2} V ${y2}`, fill: "none", stroke: color, "stroke-width": 4, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-opacity": 0.9 }));
+    g.appendChild(el("circle", { cx: x1, cy: y1, r: 4.5, fill: color }));
+    g.appendChild(el("circle", { cx: x2, cy: y2, r: 4.5, fill: color }));
+  };
+  jumper(L.X, L.jStart, L.P, L.rows.jmp, "var(--net-sig)", 11, 10, 16);
+  jumper(L.Y, L.jStart, L.R, L.rows.jmp, "var(--net-gnd)", 33, 17, 8);
+
+
+  // resistenza
+  const rx1 = x(L.P), rx2 = x(L.Q), ry = y(L.rows.res), ly = y(L.rows.led);
+  const away = Math.sign(ry - ly);
+  const mid = (rx1 + rx2) / 2;
+  g.appendChild(el("line", { x1: rx1, y1: ry, x2: rx2, y2: ry, stroke: "#8a8f93", "stroke-width": 2 }));
+  g.appendChild(el("rect", { x: mid - 18, y: ry - 7, width: 36, height: 14, rx: 6, fill: "var(--res)", stroke: "#9c7f55" }));
+  [[-10, "#c0392b"], [-4, "#c0392b"], [2, "#5a3a1a"], [11, "#c8a43a"]].forEach(([dx, c]) =>
+    g.appendChild(el("rect", { x: mid + dx, y: ry - 7, width: 3, height: 14, fill: c })));
+  g.appendChild(el("circle", { cx: rx1, cy: ry, r: 3, fill: "#8a8f93" }));
+  g.appendChild(el("circle", { cx: rx2, cy: ry, r: 3, fill: "#8a8f93" }));
+  g.appendChild(el("text", T({ x: mid, y: ry + away * 18 + 4, "font-size": 10, fill: "#4a514c" }), "220 Ω"));
+
+  // componente fuori dalla breadboard: due mezzi jumper nei fori, un cavo bianco che esce
+  // verso la fessura, etichetta sulla fessura (montaggio finale: naso e buzzer sono esterni)
+  const offBoard = (c1, c2, row, col1, col2, tag1, tag2, label) => {
+    const x1 = x(c1), x2 = x(c2), yr = y(row), lx = (x1 + x2) / 2, ly2 = gapY + 11;
+    for (const xx of [x1, x2]) g.appendChild(el("line", { x1: xx, y1: yr, x2: lx + (xx < lx ? -3 : 3), y2: ly2, stroke: "#bfbfb6", "stroke-width": 3.5, "stroke-linecap": "round" }));
+    g.appendChild(el("rect", { x: x1 - 4, y: yr - 6, width: 8, height: 12, rx: 2, fill: col1 }));
+    g.appendChild(el("rect", { x: x2 - 4, y: yr - 6, width: 8, height: 12, rx: 2, fill: col2 }));
+    const tdir = Math.sign(yr - ly2);
+    g.appendChild(el("text", T({ x: x1 + (x1 < x2 ? -9 : 9), y: yr + tdir * 12 + 4, "font-size": 11, "font-weight": 700, fill: "#2e3a44" }), tag1));
+    g.appendChild(el("text", T({ x: x2 + (x2 < x1 ? -9 : 9), y: yr + tdir * 12 + 4, "font-size": 11, "font-weight": 700, fill: "#2e3a44" }), tag2));
+    const w = label.length * 6 + 14;
+    g.appendChild(el("rect", { x: lx - w / 2, y: gapY + 2, width: w, height: 18, rx: 9, fill: "#fbfaf6", stroke: "#bfbfb6" }));
+    g.appendChild(el("text", T({ x: lx, y: gapY + 15, "font-size": 10, "font-weight": 600, fill: "#2e3a44" }), label));
+  };
+  offBoard(L.Q, L.R, L.rows.led, "#d23b2a", "#1d2420", "+", "−", "cavo → naso (LED)");
+
+  // buzzer, seconda resistenza e jumper 3 e 4
+  if (L.bz) {
+    const B = L.bz, br = L.brow;
+    const lane = (c1, r1, c2, r2, color, l) => {
+      const x1 = x(c1), y1 = y(r1), x2 = x(c2), y2 = y(r2), yl = y1 + outward(r1) * l;
+      g.appendChild(el("path", { d: `M${x1} ${y1} V ${yl} H ${x2} V ${y2}`, fill: "none", stroke: color, "stroke-width": 4, "stroke-linecap": "round", "stroke-linejoin": "round", "stroke-opacity": 0.9 }));
+      g.appendChild(el("circle", { cx: x1, cy: y1, r: 4.5, fill: color }));
+      g.appendChild(el("circle", { cx: x2, cy: y2, r: 4.5, fill: color }));
+    };
+    // il modulo buzzer è fuori dalla breadboard: restano i due mezzi jumper verso S e −
+    offBoard(B.S, B.N, br.pin, "var(--net-bz)", "var(--net-bzs)", "S", "−", "cavo → buzzer");
+    // nessuna resistenza: il piezo assorbe pochissimo (volume uguale con e senza)
+    lane(L.g5, br.jmp, B.S, br.jmp, "var(--net-bz)", 22);
+    lane(B.N, br.jmp, L.g6, br.jmp, "var(--net-bzs)", 27);
+  }
+
+  // pulsanti
+  const setP = (id, v) => document.getElementById(id).setAttribute("aria-pressed", v);
+  setP("side-left", L.side === "low"); setP("side-right", L.side === "high");
+  setP("usb-low", st.usb === "low"); setP("usb-high", st.usb === "high");
+  setP("rot-no", !st.rot); setP("rot-yes", st.rot);
+  for (const k in PLACEMENTS) setP("pl-" + k, st.place === k);
+  document.getElementById("side-left").disabled = !canLow(s);
+  document.getElementById("side-right").disabled = !canHigh(s);
+  document.getElementById("sidenote").textContent = L.side === st.usb ? "Il cavo USB esce da questo lato: lascia spazio alla spina." : "";
+  document.getElementById("viewnote").textContent = st.rot
+    ? "Vista: breadboard girata, colonna 30 a sinistra e riga a in alto."
+    : "Vista: come nella tua foto, colonna 1 a sinistra e riga j in alto.";
+
+  const lr = L.rows;
+  document.getElementById("steps").innerHTML = `
+    <li>Sulla scheda leggi la serigrafia: <b>4</b> (GPIO4) è in <b>${L.zeroRow}${L.X}</b>, <b>G</b> è in <b>${L.zeroRow}${L.Y}</b>. Se sulla tua breadboard non è così, cambia i comandi finché il disegno coincide.</li>
+    <li>Primo jumper: <b>${L.jStart}${L.X} ↔ ${lr.jmp}${L.P}</b>. Porta GPIO4 sull'altro lato della fessura, nella colonna ${L.P}.</li>
+    <li>Resistenza 220 Ω: <b>${lr.res}${L.P} ↔ ${lr.res}${L.Q}</b>.</li>
+    <li>Naso: jumper <b>rosso</b> in <b>${lr.led}${L.Q}</b> e jumper <b>nero</b> in <b>${lr.led}${L.R}</b>. Sono saldati al cavo bianco che porta al LED nel naso: il rosso va alla gamba lunga (+), il nero alla gamba corta (−).</li>
+    <li>Secondo jumper: <b>${lr.jmp}${L.R} ↔ ${L.jStart}${L.Y}</b>. Riporta il ritorno a G.</li>
+    ${L.bz ? `<li class="bzstep"><b>Buzzer</b>: sulla serigrafia della scheda controlla che <b>5</b> (GPIO5, non 5V) sia in <b>${L.otherRow}${L.g5}</b>.</li>
+    <li class="bzstep">Buzzer: un mezzo jumper in <b>${L.brow.pin}${L.bz.S}</b> va con il cavo al pin <b>S</b> del modulo, l'altro in <b>${L.brow.pin}${L.bz.N}</b> va al pin <b>−</b>. Il pin centrale resta libero. Qui S e − si possono anche scambiare: in modalità P suona uguale.</li>
+    <li class="bzstep">Terzo jumper: <b>${L.brow.jmp}${L.g5} ↔ ${L.brow.jmp}${L.bz.S}</b>. GPIO5 direttamente su S, senza resistenza.</li>
+    <li class="bzstep">Quarto jumper: <b>${L.brow.jmp}${L.bz.N} ↔ ${L.brow.jmp}${L.g6}</b>. Il − del buzzer va su <b>GPIO6</b> (in ${L.otherRow}${L.g6}), che il firmware pilota in opposizione a GPIO5.</li>` : `<li>Non ci sono abbastanza colonne libere per il buzzer in questa posizione: sposta la scheda.</li>`}`;
+  const halfName = h => h === "bot" ? "a–e" : "f–j";
+  document.getElementById("checks").innerHTML = `
+    <li>La colonna ${L.X} (lato ${halfName(L.pinHalf)}) è il nodo di GPIO4; il jumper lo prolunga nella colonna ${L.P} (lato ${halfName(L.compHalf)}).</li>
+    <li>La resistenza ha le gambe nelle colonne ${L.P} e ${L.Q}: due strisce diverse, quindi la corrente la attraversa.</li>
+    <li>Il LED ha le gambe nelle colonne ${L.Q} e ${L.R}: due strisce diverse. La gamba + condivide la colonna ${L.Q} con la resistenza.</li>
+    <li>La colonna ${L.R} è collegata con il jumper alla colonna ${L.Y}, che è G: il circuito si chiude.</li>
+    <li>Le colonne ${L.P}, ${L.Q} e ${L.R} sono fuori dalle colonne della scheda (${s}–${s + 7}), quindi nessun pin tocca i componenti.</li>
+    ${L.bz ? `<li>Buzzer: GPIO5 → colonna ${L.g5} → jumper → colonna ${L.bz.S} (S) → piezo → colonna ${L.bz.N} (−) → jumper → colonna ${L.g6} → GPIO6. GPIO6 fa sempre l'opposto di GPIO5, quindi il piezo riceve il doppio della tensione (comando P, predefinito).</li>
+    <li>Le colonne del buzzer (${L.bz.S}, ${L.bz.M}, ${L.bz.N}) non sono usate né dalla scheda né dal LED.</li>` : ""}`;
+}
+
+const on = (id, fn) => document.getElementById(id).addEventListener("click", () => { fn(); render(); });
+document.getElementById("pos").addEventListener("input", e => { st.s = +e.target.value; render(); });
+on("agreed", () => Object.assign(st, { s: 1, usb: "low", side: "high", rot: false, place: "cg" }));
+on("side-left", () => { st.side = "low"; });
+on("side-right", () => { st.side = "high"; });
+on("usb-low", () => { st.usb = "low"; st.side = "high"; });
+on("usb-high", () => { st.usb = "high"; st.side = "low"; });
+on("rot-no", () => { st.rot = false; });
+on("rot-yes", () => { st.rot = true; });
+for (const k in PLACEMENTS) on("pl-" + k, () => { st.place = k; });
+render();
+</script>
