@@ -29,6 +29,11 @@
     background: var(--red); color: #fff; margin-bottom: 16px;
   }
   #connect.connected { background: var(--panel); color: var(--muted); border: 1px solid var(--line); }
+  #connect { margin-bottom: 8px; }
+  button.secondary {
+    width: 100%; padding: 10px; font-size: .9rem; border-radius: 12px; margin-bottom: 16px;
+    background: transparent; color: var(--muted); border: 1px solid var(--line);
+  }
   h2 { font-size: .8rem; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin: 18px 2px 8px; }
   .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(100px, 1fr)); gap: 10px; }
   .grid.big { grid-template-columns: repeat(2, 1fr); }
@@ -55,6 +60,7 @@
 </header>
 
 <button id="connect">Collega al naso</button>
+<button id="connect-all" class="secondary">Non lo trova? Mostra tutti i dispositivi</button>
 
 <h2>Rapidi</h2>
 <div class="grid big">
@@ -121,7 +127,7 @@ function setState(text, cls) {
   $("connect").classList.toggle("connected", on);
 }
 
-async function connect() {
+async function connect(showAll = false) {
   if (!navigator.bluetooth) {
     $("log").textContent = "Questo browser non ha il Bluetooth web: usa Chrome su Android.";
     return;
@@ -129,7 +135,12 @@ async function connect() {
   try {
     setState("ricerca…", "busy");
     if (!device) {
-      device = await navigator.bluetooth.requestDevice({ filters: [{ name: NAME }], optionalServices: [SERVICE] });
+      // The full name may not fit in the advertising packet next to the 128-bit UUID:
+      // match the service UUID or the start of the name, or (fallback) list every device.
+      const options = showAll
+        ? { acceptAllDevices: true, optionalServices: [SERVICE] }
+        : { filters: [{ services: [SERVICE] }, { namePrefix: "NasoClown" }], optionalServices: [SERVICE] };
+      device = await navigator.bluetooth.requestDevice(options);
       device.addEventListener("gattserverdisconnected", () => { characteristic = null; setState("scollegato"); });
     }
     const server = await device.gatt.connect();
@@ -138,6 +149,7 @@ async function connect() {
     setState("collegato", "on");
     $("log").textContent = "";
   } catch (err) {
+    device = null;  // let the next attempt open the device list again
     setState("non collegato");
     $("log").textContent = "Errore: " + err.message;
   }
@@ -159,6 +171,7 @@ $("connect").addEventListener("click", () => {
   if (device && device.gatt.connected) device.gatt.disconnect();
   else connect();
 });
+$("connect-all").addEventListener("click", () => { device = null; connect(true); });
 // pointerdown fires on touch, without the click delay: repeated taps are sent at once
 buttons.forEach((b) => b.addEventListener("pointerdown", (e) => { e.preventDefault(); send(b.dataset.c, b); }));
 setState("non collegato");
