@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "author": "noise_ble",
+  "editor": "wokwi",
+  "parts": [
+    {
+      "type": "board-aitewinrobot-esp32c3-supermini",
+      "id": "esp",
+      "top": 0,
+      "left": 0,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-breadboard-half",
+      "id": "bb1",
+      "top": 0,
+      "left": 230,
+      "attrs": {}
+    },
+    {
+      "type": "wokwi-resistor",
+      "id": "r1",
+      "top": 110,
+      "left": 450,
+      "attrs": {
+        "value": "220"
+      }
+    },
+    {
+      "type": "wokwi-led",
+      "id": "led1",
+      "top": -130,
+      "left": 420,
+      "attrs": {
+        "color": "red",
+        "label": "Naso"
+      }
+    },
+    {
+      "type": "wokwi-buzzer",
+      "id": "bz1",
+      "top": -150,
+      "left": 600,
+      "attrs": {
+        "volume": "0.5"
+      }
+    },
+    {
+      "type": "wokwi-text",
+      "id": "note",
+      "top": 330,
+      "left": 230,
+      "attrs": {
+        "text": "Montaggio finale (31/10/2026). LED nel naso e buzzer KY-006 fuori dalla breadboard, collegati con cavo + mezzi jumper.\nLED: 4 -> a18, 220 ohm e18-e12, c12 (rosso) -> anodo, c11 (nero) -> catodo, a11 -> G.\nBuzzer: 5 -> a24, c24 -> S; c22 -> '-', a22 -> 6 (GPIO6 in opposizione a GPIO5)."
+      }
+    }
+  ],
+  "connections": [
+    [ "esp:4", "bb1:18t.a", "green", [] ],
+    [ "bb1:18t.e", "r1:1", "green", [] ],
+    [ "r1:2", "bb1:12t.e", "green", [] ],
+    [ "bb1:12t.c", "led1:A", "red", [] ],
+    [ "led1:C", "bb1:11t.c", "black", [] ],
+    [ "bb1:11t.a", "esp:GND", "black", [] ],
+    [ "esp:5", "bb1:24t.a", "violet", [] ],
+    [ "bb1:24t.c", "bz1:2", "violet", [] ],
+    [ "bz1:1", "bb1:22t.c", "cyan", [] ],
+    [ "bb1:22t.a", "esp:6", "cyan", [] ],
+    [ "esp:TX", "$serialMonitor:RX", "", [] ],
+    [ "esp:RX", "$serialMonitor:TX", "", [] ]
+  ],
+  "dependencies": {}
+}

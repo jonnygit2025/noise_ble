@@ -1,0 +1,6 @@
+[wokwi]
+version = 1
+# Percorsi relativi a questo file; build con PlatformIO dalla root del progetto.
+# Usare l'ambiente wokwi (SIMULATION_MODE), non esp32c3_supermini (BLE/USB CDC).
+firmware = "../.pio/build/wokwi/firmware.bin"
+elf = "../.pio/build/wokwi/firmware.elf"

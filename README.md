@@ -1,5 +1,7 @@
 # noise_ble — Smart Halloween Clown Nose
 
+
+> **Stato attuale e documentazione completa:** [`docs/DOCUMENTAZIONE.md`](docs/DOCUMENTAZIONE.md) · riassunto in [`STATO_PROGETTO.md`](STATO_PROGETTO.md) · app per il telefono: https://jonnygit2025.github.io/noise_ble/app/ · schema interattivo del circuito: [`docs/circuito-interattivo.html`](docs/circuito-interattivo.html). Il montaggio finale usa la **ESP32-C3 Super Mini** (ambiente `esp32c3_supermini`).
 Prototipo sperimentale di naso luminoso con buzzer e controllo BLE su **Seeed XIAO ESP32-C3**. Branch `test` dedicato alla verifica; nessuna modifica a `main`.
 
 ## Comandi
@@ -17,6 +19,7 @@ Gli effetti sono non bloccanti (macchina a stati e `millis()`), quindi `0` può 
 Richiede [PlatformIO](https://platformio.org/).
 
 - Hardware XIAO ESP32-C3: `pio run -e xiao_esp32c3`
+- Hardware ESP32-C3 Super Mini: `pio run -e esp32c3_supermini`; upload with `pio run -e esp32c3_supermini -t upload`.
 - Simulazione Wokwi: `pio run -e wokwi`, poi aprire Wokwi in VS Code con `diagram.json` e `wokwi.toml`.
 - In Wokwi inviare `1`, `0`, `H`, `L`, `S` via terminale seriale.
 - Sulla scheda fisica usare un client BLE GATT con **Write** sul servizio `4fafc201-1fb5-459e-8fcc-c5c9c331914b` / caratteristica `beb5483e-36e1-4688-b7f5-ea07361b26a8`, inviando un singolo byte ASCII.
@@ -24,8 +27,8 @@ Richiede [PlatformIO](https://platformio.org/).
 **Nota:** Wokwi non emula il collegamento BLE; `SIMULATION_MODE` esclude lo stack BLE per testare LED, buzzer e logica. Il test BLE va eseguito con scheda reale.
 
 ## Cablaggio preliminare
-- D2 / GPIO4 -> resistore **220Ω** -> anodo LED rosso; catodo -> GND.
-- D3 / GPIO5 -> **solo un buzzer piezo passivo compatibile con pilotaggio GPIO 3,3V a corrente molto bassa**; altro terminale -> GND.
+- XIAO: D2 / GPIO4 -> resistore **220Ω** -> anodo LED rosso; catodo -> GND. Super Mini: pin marcato GPIO4/IO4 -> resistenza -> LED; catodo -> GND.
+- XIAO: D3 / GPIO5 -> buzzer. Super Mini: pin marcato GPIO5/IO5 -> buzzer. In entrambi i casi usare **solo un buzzer piezo passivo compatibile con pilotaggio GPIO 3,3V a corrente molto bassa**, con l'altro terminale a GND.
 - Per buzzer da 5V, magnetici o di corrente non specificata usare un driver transistor/MOSFET dimensionato e alimentazione corretta: **non** collegarli direttamente al GPIO.
 - Alimentare XIAO via USB-C da 5V; per LiPo seguire lo schema batteria specifico della board, senza collegare 5V al pad LiPo.
 - Il LED e le connessioni vicino al volto devono essere isolati; niente componenti rigidi o scoperti a contatto con la pelle. Fissare il cavo in modo che non tiri sul naso.
