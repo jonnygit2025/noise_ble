@@ -1,7 +1,7 @@
 # noise_ble — Smart Halloween Clown Nose
 
-
 > **Stato attuale e documentazione completa:** [`docs/DOCUMENTAZIONE.md`](docs/DOCUMENTAZIONE.md) · riassunto in [`STATO_PROGETTO.md`](STATO_PROGETTO.md) · app per il telefono: https://jonnygit2025.github.io/noise_ble/app/ · schema interattivo del circuito: [`docs/circuito-interattivo.html`](docs/circuito-interattivo.html). Il montaggio finale usa la **ESP32-C3 Super Mini** (ambiente `esp32c3_supermini`).
+
 Prototipo sperimentale di naso luminoso con buzzer e controllo BLE su **Seeed XIAO ESP32-C3**. Branch `test` dedicato alla verifica; nessuna modifica a `main`.
 
 ## Comandi
