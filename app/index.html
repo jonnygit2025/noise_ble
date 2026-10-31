@@ -106,6 +106,7 @@
 </div>
 
 <div id="log"></div>
+<div id="diag" class="note"></div>
 <p class="note">Funziona con Chrome su Android. La prima volta tocca "Collega al naso" e scegli <b>NasoClown-Halloween</b>. Ogni tocco manda subito il comando: puoi toccare lo stesso bottone più volte di fila.</p>
 
 <script>
@@ -127,11 +128,20 @@ function setState(text, cls) {
   $("connect").classList.toggle("connected", on);
 }
 
+let searching = false;
 async function connect(showAll = false) {
   if (!navigator.bluetooth) {
-    $("log").textContent = "Questo browser non ha il Bluetooth web: usa Chrome su Android.";
+    $("log").textContent = "Questo browser non ha il Bluetooth web: apri il link direttamente in Chrome.";
     return;
   }
+  if (searching) return;
+  searching = true;
+  // If the device chooser never opens, unlock the buttons instead of staying on "ricerca…".
+  const stuck = setTimeout(() => {
+    searching = false;
+    setState("non collegato");
+    $("log").textContent = "La finestra di scelta non si è aperta: apri il link direttamente in Chrome, con Bluetooth e posizione attivi.";
+  }, 15000);
   try {
     setState("ricerca…", "busy");
     if (!device) {
@@ -151,8 +161,23 @@ async function connect(showAll = false) {
   } catch (err) {
     device = null;  // let the next attempt open the device list again
     setState("non collegato");
-    $("log").textContent = "Errore: " + err.message;
+    $("log").textContent = "Errore: " + err.name + " – " + err.message;
+  } finally {
+    clearTimeout(stuck);
+    searching = false;
   }
+}
+
+// Diagnostic line: which browser this is and whether it can use Bluetooth.
+async function diagnose() {
+  const ua = navigator.userAgent;
+  const inApp = /; wv\)|FBAN|FBAV|Instagram|Line\/|WhatsApp|Telegram/i.test(ua);
+  let bt = navigator.bluetooth ? "sì" : "NO";
+  if (navigator.bluetooth && navigator.bluetooth.getAvailability) {
+    try { bt += (await navigator.bluetooth.getAvailability()) ? ", adattatore pronto" : ", adattatore spento o non disponibile"; } catch (e) {}
+  }
+  $("diag").textContent = "Bluetooth web: " + bt + (inApp ? " · ATTENZIONE: browser interno di un'app, apri in Chrome" : "") +
+    " · " + (ua.match(/(Chrome|SamsungBrowser|Firefox|Version)\/[\d.]+/) || ["browser sconosciuto"])[0];
 }
 
 function send(letter, btn) {
@@ -175,6 +200,7 @@ $("connect-all").addEventListener("click", () => { device = null; connect(true);
 // pointerdown fires on touch, without the click delay: repeated taps are sent at once
 buttons.forEach((b) => b.addEventListener("pointerdown", (e) => { e.preventDefault(); send(b.dataset.c, b); }));
 setState("non collegato");
+diagnose();
 </script>
 </body>
 </html>
